@@ -5,7 +5,7 @@
 pkgbase=gdm
 pkgname=(gdm libgdm)
 pkgver=3.29.91+2+g21867afd
-pkgrel=1
+pkgrel=2
 pkgdesc="Display manager and login screen"
 url="https://wiki.gnome.org/Projects/GDM"
 arch=(x86_64)
@@ -60,6 +60,7 @@ check() {
 package_gdm() {
   depends+=(libgdm)
   optdepends=('fprintd: fingerprint authentication')
+  install=remove-workaround.install
   backup=(etc/pam.d/gdm-autologin etc/pam.d/gdm-fingerprint etc/pam.d/gdm-launch-environment
           etc/pam.d/gdm-password etc/pam.d/gdm-smartcard etc/gdm/custom.conf
           etc/gdm/Xsession etc/gdm/PostSession/Default etc/gdm/PreSession/Default)

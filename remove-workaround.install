@@ -1,0 +1,18 @@
+post_install() {
+	
+	grep "pkill -KILL -u gdm" /etc/gdm/PostLogin/Default;
+		
+		if [[ $1 == 0 ]]; then
+			#Check if the workaround is present and obtain the line number	
+			a=$(grep -n "pkill -KILL -u gdm" /etc/gdm/PostLogin/Default | cut -c1-1)
+			#Remove the resulting line
+			sed -i ${a}d /etc/gdm/PostLogin/Default
+		fi
+}
+
+post_upgrade() {
+
+	post_install
+
+}
+
