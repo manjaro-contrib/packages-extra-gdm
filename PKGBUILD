@@ -1,92 +1,98 @@
-# Maintainer: Stefano Capitani <stefano@manjaro.org>
-# Maintainer: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
-# Maintainer: Jan de Groot <jgc@archlinux.org>
+# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
 
 pkgbase=gdm
 pkgname=(gdm libgdm)
-pkgver=3.30.0+4+g839c9501
-pkgrel=0
+pkgver=3.38.1
+pkgrel=2.1
 pkgdesc="Display manager and login screen"
 url="https://wiki.gnome.org/Projects/GDM"
 arch=(x86_64)
 license=(GPL)
-depends=(gnome-shell gnome-session upower xorg-xrdb xorg-server xorg-server-xwayland xorg-xhost)
-makedepends=(yelp-tools intltool gobject-introspection git docbook-xsl)
+depends=(gnome-shell gnome-session upower xorg-xrdb xorg-server xorg-xhost
+         libxdmcp systemd)
+makedepends=(yelp-tools gobject-introspection git docbook-xsl meson)
 checkdepends=(check)
-_commit=839c9501959c95eea3b524d7e3710cdec6d97531 # master
+_commit=688309c5214a79db53c53ac279379e3761723864  # tags/3.38.1^0
 source=("git+https://gitlab.gnome.org/GNOME/gdm.git#commit=$_commit"
-        0002-Xsession-Don-t-start-ssh-agent-by-default.patch
-        gdm.sysusers)
+        0001-Xsession-Don-t-start-ssh-agent-by-default.patch
+        0002-pam-arch-Update-to-match-pambase-20200721.1-2.patch
+        default.pa
+        gdm3.service-wait-for-drm-device-before-trying-to-start-i.patch)
 sha256sums=('SKIP'
-            '9449da0b6ee58aa3fde65e6d8d1f30513e4176a7dc6d176f17f320ce82cb1d82'
-            '6d9c8e38c7de85b6ec75e488585b8c451f5d9b4fabd2a42921dc3bfcc4aa3e13')
+            'b9ead66d2b6207335f0bd982a835647536998e7c7c6b5248838e5d53132ca21a'
+            '723bf4462ea4eed4193a891e95137687abfeefe6a170ec5822921bffdfc1f412'
+            'e88410bcec9e2c7a22a319be0b771d1f8d536863a7fc618b6352a09d61327dcb'
+            '1dd680126dbf974a6378987a5d69886e567cd10d58f9402995f59ed455b80125')
 
 pkgver() {
-  cd $pkgbase
+  cd gdm
   git describe --tags | sed 's/-/+/g'
 }
 
 prepare() {
-  cd $pkgbase
-  patch -Np1 -i ../0002-Xsession-Don-t-start-ssh-agent-by-default.patch
-  NOCONFIGURE=1 ./autogen.sh
+  cd gdm
+  git apply -3 ../0001-Xsession-Don-t-start-ssh-agent-by-default.patch
+
+  # https://bugs.archlinux.org/task/67485
+  git apply -3 ../0002-pam-arch-Update-to-match-pambase-20200721.1-2.patch
+
+  patch -Np1 -i ../gdm3.service-wait-for-drm-device-before-trying-to-start-i.patch
 }
 
 build() {
-  cd $pkgbase
-  ./configure \
-    --prefix=/usr \
-    --sysconfdir=/etc \
-    --localstatedir=/var \
-    --sbindir=/usr/bin \
-    --libexecdir=/usr/lib \
-    --disable-schemas-compile \
-    --disable-static \
-    --enable-gdm-xsession \
-    --enable-ipv6 \
-    --with-default-pam-config=arch \
-    --with-default-path=/usr/local/bin:/usr/local/sbin:/usr/bin \
-    --without-plymouth \
-    --without-tcp-wrappers
-  sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
-  make
+  arch-meson gdm build \
+    -D dbus-sys="/usr/share/dbus-1/system.d" \
+    -D default-pam-config=arch \
+    -D default-path="/usr/local/bin:/usr/local/sbin:/usr/bin" \
+    -D gdm-xsession=true \
+    -D ipv6=true \
+    -D plymouth=disabled \
+    -D run-dir=/run/gdm \
+    -D selinux=disabled
+  meson compile -C build
 }
 
 check() {
-  cd $pkgbase
-  make check
+  meson test -C build --print-errorlogs
 }
 
 package_gdm() {
   depends+=(libgdm)
   optdepends=('fprintd: fingerprint authentication')
-  install=remove-workaround.install
   backup=(etc/pam.d/gdm-autologin etc/pam.d/gdm-fingerprint etc/pam.d/gdm-launch-environment
           etc/pam.d/gdm-password etc/pam.d/gdm-smartcard etc/gdm/custom.conf
           etc/gdm/Xsession etc/gdm/PostSession/Default etc/gdm/PreSession/Default)
   groups=(gnome)
+  install=gdm.install
 
-  cd $pkgbase
-  make DESTDIR="$pkgdir" install
+  DESTDIR="$pkgdir" meson install -C build
 
-  chown -Rc 120:120 "$pkgdir/var/lib/gdm"
+  install -d "$pkgdir/var/lib"
+  install -d "$pkgdir/var/lib/gdm"                           -o120 -g120 -m1770
+  install -d "$pkgdir/var/lib/gdm/.config"                   -o120 -g120 -m700
+  install -d "$pkgdir/var/lib/gdm/.config/pulse"             -o120 -g120
+  install -d "$pkgdir/var/lib/gdm/.local"                    -o120 -g120 -m700
+  install -d "$pkgdir/var/lib/gdm/.local/share"              -o120 -g120
+  install -d "$pkgdir/var/lib/gdm/.local/share/applications" -o120 -g120
 
-  # Unused or created at start
-  rm -r "$pkgdir"/var/{cache,log,run}
+  # https://src.fedoraproject.org/rpms/gdm/blob/master/f/default.pa-for-gdm
+  install -Dt "$pkgdir/var/lib/gdm/.config/pulse" -o120 -g120 -m644 default.pa
 
-  install -Dm644 ../gdm.sysusers "$pkgdir/usr/lib/sysusers.d/gdm.conf"
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/sysusers.d/gdm.conf" <<END
+g gdm 120 -
+u gdm 120 "Gnome Display Manager" /var/lib/gdm
+END
 
 ### Split libgdm
-  make -C libgdm DESTDIR="$pkgdir" uninstall
-  mv "$pkgdir/usr/share/glib-2.0/schemas/org.gnome.login-screen.gschema.xml" "$srcdir"
+  mkdir -p libgdm/{lib,share}
+  mv -t libgdm       "$pkgdir"/usr/include
+  mv -t libgdm/lib   "$pkgdir"/usr/lib/{girepository-1.0,libgdm*,pkgconfig}
+  mv -t libgdm/share "$pkgdir"/usr/share/{gir-1.0,glib-2.0}
 }
 
 package_libgdm() {
   pkgdesc="GDM support library"
   depends=(systemd glib2 dconf)
-
-  cd $pkgbase
-  make -C libgdm DESTDIR="$pkgdir" install
-  install -Dt "$pkgdir/usr/share/glib-2.0/schemas" -m644 \
-    "$srcdir/org.gnome.login-screen.gschema.xml"
+  mv libgdm "$pkgdir/usr"
 }
