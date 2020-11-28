@@ -47,7 +47,6 @@ build() {
     -D default-path="/usr/local/bin:/usr/local/sbin:/usr/bin" \
     -D gdm-xsession=true \
     -D ipv6=true \
-    -D plymouth=disabled \
     -D run-dir=/run/gdm \
     -D selinux=disabled
   meson compile -C build
