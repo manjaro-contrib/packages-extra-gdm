@@ -11,7 +11,7 @@ arch=(x86_64)
 license=(GPL)
 depends=(gnome-shell gnome-session upower xorg-xrdb xorg-server xorg-xhost
          libxdmcp systemd)
-makedepends=(yelp-tools gobject-introspection git docbook-xsl meson)
+makedepends=(yelp-tools gobject-introspection git docbook-xsl meson plymouth)
 checkdepends=(check)
 _commit=a97225675079fc349dadee65d843191fd4c05197  # tags/3.38.2.1^0
 source=("git+https://gitlab.gnome.org/GNOME/gdm.git#commit=$_commit"
@@ -58,7 +58,8 @@ check() {
 
 package_gdm() {
   depends+=(libgdm)
-  optdepends=('fprintd: fingerprint authentication')
+  optdepends=('fprintd: fingerprint authentication'
+              'plymouth: for graphical bootsplash')
   backup=(etc/pam.d/gdm-autologin etc/pam.d/gdm-fingerprint etc/pam.d/gdm-launch-environment
           etc/pam.d/gdm-password etc/pam.d/gdm-smartcard etc/gdm/custom.conf
           etc/gdm/Xsession etc/gdm/PostSession/Default etc/gdm/PreSession/Default)
