@@ -1,42 +1,74 @@
 # Maintainer: Mark Wagie <mark at manjaro dot org>
-
-# Arch credits:
-# Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Fabian Bornschein <fabiscafe-at-mailbox-dot-org>
+# Contributor: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 # Contributor: Jan de Groot <jgc@archlinux.org>
 
 pkgbase=gdm
-pkgname=(gdm libgdm)
-pkgver=43.0
+pkgname=(
+  gdm
+  libgdm
+)
+pkgver=46.2
 pkgrel=2
 pkgdesc="Display manager and login screen"
-url="https://wiki.gnome.org/Projects/GDM"
+url="https://gitlab.gnome.org/GNOME/gdm"
 arch=(x86_64)
-license=(GPL)
-depends=(gnome-shell gnome-session upower xorg-xrdb xorg-server xorg-xhost
-         libxdmcp systemd libcanberra)
-makedepends=(yelp-tools gobject-introspection git docbook-xsl meson plymouth)
+license=(GPL-2.0-or-later)
+depends=(
+  accountsservice
+  audit
+  bash
+  gcc-libs
+  gdk-pixbuf2
+  glib2
+  glibc
+  gnome-session
+  gnome-shell
+  gtk3
+  json-glib
+  keyutils
+  libcanberra
+  libgudev
+  libx11
+  libxau
+  libxcb
+  libxdmcp
+  pam
+  systemd
+  systemd-libs
+  upower
+)
+makedepends=(
+  dconf
+  docbook-xsl
+  git
+  gobject-introspection
+  meson
+  plymouth
+  python-packaging
+  yelp-tools
+  xorg-server
+  xorg-xhost
+  xorg-xrdb
+)
+optdepends=(
+  'xorg-server: X session support'
+  'xorg-xhost: X session support'
+  'xorg-xrdb: X session support'
+)
 checkdepends=(check)
-_commit=afa6f2ef3d34048cd7a3e1a1ec478be2ff464806  # tags/43.0^0
-source=("git+https://gitlab.gnome.org/GNOME/gdm.git#commit=$_commit"
-        0001-Xsession-Don-t-start-ssh-agent-by-default.patch
-        0002-pam-arch-Remove-user_readenv-1-from-pam_env.patch)
-sha256sums=('SKIP'
-            '39a7e1189d423dd428ace9baac77ba0442c6706a861d3c3db9eb3a6643e223f8'
-            '7e42077a89a6fcf8b02244b01127af7000a10ed55e09e385eb6fac5aef421c07')
-
-pkgver() {
-  cd gdm
-  git describe --tags | sed 's/[^-]*-g/r&/;s/-/+/g'
-}
+source=(
+  "git+https://gitlab.gnome.org/GNOME/gdm.git#tag=${pkgver/[a-z]/.&}"
+  0001-Xsession-Don-t-start-ssh-agent-by-default.patch
+)
+b2sums=('a7c20a7cef158e24cda587d49d4fde0774bcdfa46e1ce7e943c63a13bfb28c547e4f5e48f6a212bf1c0b77fd669dac9efd1d1e6ec3067f7013df9f0dddbddabf'
+        'f7e868fdd7cc121433de1572583eb728f4d186cd4f52c6d6c8f2ccf4a3cf781144ff71f704f13571ddb97a1ff4ec55cfa3df25d38737ad19da21e84ddc2d3ee4')
 
 prepare() {
   cd gdm
 
   # Don't start ssh-agent by default
   git apply -3 ../0001-Xsession-Don-t-start-ssh-agent-by-default.patch
-
-  # https://bugs.archlinux.org/task/68945
-  git apply -3 ../0002-pam-arch-Remove-user_readenv-1-from-pam_env.patch
 }
 
 build() {
@@ -71,10 +103,17 @@ _pick() {
 package_gdm() {
   depends+=(libgdm)
   optdepends=('fprintd: fingerprint authentication')
-  replaces=(gdm-plymouth)
-  backup=(etc/pam.d/gdm-autologin etc/pam.d/gdm-fingerprint etc/pam.d/gdm-launch-environment
-          etc/pam.d/gdm-password etc/pam.d/gdm-smartcard etc/gdm/custom.conf
-          etc/gdm/Xsession etc/gdm/PostSession/Default etc/gdm/PreSession/Default)
+  backup=(
+    etc/gdm/PostSession/Default
+    etc/gdm/PreSession/Default
+    etc/gdm/Xsession
+    etc/gdm/custom.conf
+    etc/pam.d/gdm-autologin
+    etc/pam.d/gdm-fingerprint
+    etc/pam.d/gdm-launch-environment
+    etc/pam.d/gdm-password
+    etc/pam.d/gdm-smartcard
+  )
   groups=(gnome)
   install=gdm.install
 
@@ -117,9 +156,18 @@ END
 
 package_libgdm() {
   pkgdesc+=" - support library"
-  depends=(libsystemd.so libg{lib,object,io}-2.0.so)
+  depends=(
+    dconf
+    gcc-libs
+    glib2
+    glibc
+    libg{lib,object,io}-2.0.so
+    libsystemd.so
+    systemd-libs
+  )
   provides=(libgdm.so)
-  replaces=(libgdm-plymouth)
 
   mv libgdm/* "$pkgdir"
 }
+
+# vim:set sw=2 sts=-1 et:
