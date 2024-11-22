@@ -9,7 +9,7 @@ pkgname=(
   libgdm
 )
 pkgver=47.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Display manager and login screen"
 url="https://gitlab.gnome.org/GNOME/gdm"
 arch=(x86_64)
@@ -149,6 +149,11 @@ g gdm 120 -
 u gdm 120 "Gnome Display Manager" /var/lib/gdm
 END
 
+  install -Dm644 /dev/stdin usr/share/glib-2.0/schemas/org.gnome.login-screen.gschema.override <<END
+[org.gnome.login-screen]
+enable-smartcard-authentication=false
+END
+
   _pick libgdm usr/include
   _pick libgdm usr/lib/{girepository-1.0,libgdm*,pkgconfig}
   _pick libgdm usr/share/{gir-1.0,glib-2.0}
@@ -171,3 +176,4 @@ package_libgdm() {
 }
 
 # vim:set sw=2 sts=-1 et:
+
