@@ -9,7 +9,7 @@ pkgname=(
   libgdm
 )
 pkgver=49.1
-pkgrel=1
+pkgrel=1.1
 pkgdesc="Display manager and login screen"
 url="https://gitlab.gnome.org/GNOME/gdm"
 arch=(x86_64)
@@ -69,6 +69,10 @@ prepare() {
 
   # Don't start ssh-agent by default
   git apply -3 ../0001-Xsession-Don-t-start-ssh-agent-by-default.patch
+  
+  # https://gitlab.archlinux.org/archlinux/packaging/packages/gdm/-/issues/10
+  sed -i -e '/# Uncomment the line below to force the login screen to use Xorg/d' data/gdm.conf-custom.in
+  sed -i -e '/#WaylandEnable=false/d' data/gdm.conf-custom.in
 }
 
 build() {
