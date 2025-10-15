@@ -9,7 +9,7 @@ pkgname=(
   libgdm
 )
 pkgver=49.1
-pkgrel=1.1
+pkgrel=1.2
 pkgdesc="Display manager and login screen"
 url="https://gitlab.gnome.org/GNOME/gdm"
 arch=(x86_64)
@@ -119,6 +119,7 @@ package_gdm() {
     etc/pam.d/gdm-smartcard
   )
   groups=(gnome)
+  install=gdm.install
 
   meson install -C build --destdir "$pkgdir"
 
