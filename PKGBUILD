@@ -9,7 +9,7 @@ pkgname=(
   libgdm
 )
 pkgver=49.2
-pkgrel=1
+pkgrel=2
 pkgdesc="Display manager and login screen"
 url="https://gitlab.gnome.org/GNOME/gdm"
 arch=(x86_64)
@@ -18,7 +18,6 @@ depends=(
   accountsservice
   audit
   bash
-  gcc-libs
   gdk-pixbuf2
   glib2
   glibc
@@ -28,6 +27,7 @@ depends=(
   json-glib
   keyutils
   libcanberra
+  libgcc
   libgudev
   libx11
   libxau
