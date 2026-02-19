@@ -9,7 +9,7 @@ pkgname=(
   libgdm
 )
 pkgver=49.2
-pkgrel=2
+pkgrel=3
 pkgdesc="Display manager and login screen"
 url="https://gitlab.gnome.org/GNOME/gdm"
 arch=(x86_64)
@@ -60,15 +60,22 @@ checkdepends=(check)
 source=(
   "git+https://gitlab.gnome.org/GNOME/gdm.git#tag=${pkgver/[a-z]/.&}"
   0001-Xsession-Don-t-start-ssh-agent-by-default.patch
+  local-display-factory-Ignore-WaylandEnable-key.patch
 )
 b2sums=('3a5bfad78a2eb390a5be0fa2667e8a173b26da7c9b527b88b4d0562825942ee325117c11a979442e516ff6435560471adee3982c20c84efccf0635407ddeee82'
-        'f7e868fdd7cc121433de1572583eb728f4d186cd4f52c6d6c8f2ccf4a3cf781144ff71f704f13571ddb97a1ff4ec55cfa3df25d38737ad19da21e84ddc2d3ee4')
+        'f7e868fdd7cc121433de1572583eb728f4d186cd4f52c6d6c8f2ccf4a3cf781144ff71f704f13571ddb97a1ff4ec55cfa3df25d38737ad19da21e84ddc2d3ee4'
+        '2c49b01fa927d13b1f92322c5dc19f235e06ec7270eaa0550989a89726473c0f3f17374453c45ec5ee55681d86cf6cb3d3aa18479a74aed0c906b74a45557c23')
 
 prepare() {
   cd gdm
 
   # Don't start ssh-agent by default
   git apply -3 ../0001-Xsession-Don-t-start-ssh-agent-by-default.patch
+
+  # Ignore WaylandEnable key when GNOME doesn't support X11
+  # https://gitlab.gnome.org/GNOME/gdm/-/issues/1027
+  # https://gitlab.gnome.org/GNOME/gdm/-/merge_requests/354
+  git apply -3 ../local-display-factory-Ignore-WaylandEnable-key.patch
   
   # https://gitlab.archlinux.org/archlinux/packaging/packages/gdm/-/issues/10
   sed -i -e '/# Uncomment the line below to force the login screen to use Xorg/d' data/gdm.conf-custom.in
