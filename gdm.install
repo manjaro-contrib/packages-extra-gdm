@@ -1,9 +1,0 @@
-#!/bin/sh
-
-post_upgrade() {
-  # https://gitlab.archlinux.org/archlinux/packaging/packages/gdm/-/issues/10
-  # https://gitlab.gnome.org/GNOME/gdm/-/issues/1027
-  # We make sure to remove the function completely for now
-  sed -i -e '/Uncomment the line below to force the login screen to use Xorg/d' /etc/gdm/custom.conf
-  sed -i -e '/WaylandEnable/d' /etc/gdm/custom.conf
-}
